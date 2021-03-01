@@ -23,6 +23,8 @@ public class CameraSwivel : MonoBehaviour
 
     void Update()
     {
+        GetSwivelInput();
+
         if (!Mathf.Approximately(currentSwivelAxis, 0))
         {
             transform.Rotate(0, rotateSpeed * currentSwivelAxis * Time.deltaTime, 0);

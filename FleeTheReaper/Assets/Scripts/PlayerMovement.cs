@@ -249,8 +249,16 @@ public class PlayerMovement : MonoBehaviour
     {
         //If the user didn't press jump just a bit before this, has pressed jump, and is within the jump leeway,
         //make them jump.
-        if (!onJumpCooldown && jumpBuffered && jumpLeeway)
+        if (!onJumpCooldown && jumpBuffered && (jumpLeeway || extraJumpsLeft > 0))
         {
+            //If we got here and the player doesn't have jump leeway, they must have used an extra jump,
+            //so subtract one.
+            if (!jumpLeeway)
+            {
+                extraJumpsLeft--;
+                lastJumpState = State;
+            }
+
             //Start a cooldown on jumping, so the player can't jump again immediately.
             //This mitigates problems with the leeway on IsGrounded(), which is otherwise necessary.
             StartCoroutine(SetJumpCooldown(jumpCooldownTime));
@@ -355,28 +363,15 @@ public class PlayerMovement : MonoBehaviour
     /// /// <param name="grounded">Whether the player is in a state they can jump from or not.</param>
     private void SetJumpLeeway()
     {
-        Func<int> setLeewayAndState = () =>
-        {
-            leewayTimer = 0;
-            jumpLeeway = true;
-            lastJumpState = State;
-            return 0;
-        };
-
         //If the player is in a state they can jump from,
         if (State == PlayerState.Grounded || State == PlayerState.WallRiding)
         {
             //Reset the coyote time counter, and make sure the player can jump.
             //They hit the ground, so they're not jumping anymore and get all their jumps back.
-            setLeewayAndState();
-            extraJumpsLeft = extraJumps;
-        }
-        else if (extraJumpsLeft > 0)
-        {
-            //Reset the coyote time counter, and make sure the player can jump.
-            //They hit the ground, so they're not jumping anymore.
-            setLeewayAndState();
-            extraJumpsLeft--;
+            leewayTimer = 0;
+            jumpLeeway = true;
+            lastJumpState = State;
+            if (State == PlayerState.Grounded) { extraJumpsLeft = extraJumps; }
         }
         //If the player is not in a state they can jump from,
         else
