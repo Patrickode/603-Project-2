@@ -212,7 +212,8 @@ public class PlayerMovement : MonoBehaviour
                 coll.bounds.extents.y,
                 moveDir,
                 out RaycastHit hit,
-                0.05f
+                0.05f,
+                ~0, QueryTriggerInteraction.Ignore
             );
 
             //If the cast hit something and the normal of that something is roughly along the XZ plane,
@@ -263,6 +264,8 @@ public class PlayerMovement : MonoBehaviour
             //This mitigates problems with the leeway on IsGrounded(), which is otherwise necessary.
             StartCoroutine(SetJumpCooldown(jumpCooldownTime));
 
+            Vector3 jumpDir = Vector3.up;
+
             //If the state we're jumping from is WallRiding and wallHit isn't null, then we're jumping off
             //a wall, and we should jump away from that wall.
             if (lastJumpState == PlayerState.WallRiding && WallHit is RaycastHit hit)
@@ -274,6 +277,7 @@ public class PlayerMovement : MonoBehaviour
                 rb.velocity += new Vector3(jumpVect.x, jumpVect.y, jumpVect.z);
 
                 State = PlayerState.WallJumping;
+                jumpDir = hit.normal;
             }
             //Otherwise, just jump up.
             else
@@ -290,6 +294,13 @@ public class PlayerMovement : MonoBehaviour
             //Take note that the player just jumped.
             jumpLeeway = false;
             jumpBuffered = false;
+
+            //Spawn a jump poof at this position with a normal depending on the type of jump.
+            ParticleManager.SpawnParticles?.Invoke(
+                0,
+                transform.position - jumpDir * transform.localScale.y / 2,
+                jumpDir
+            );
         }
     }
 

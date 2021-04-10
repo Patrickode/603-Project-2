@@ -48,6 +48,8 @@ public class PlaceAndScore : MonoBehaviour
             );
         }
 
+        ParticleManager.SpawnParticles(1, transform.position, Vector3.up);
+
         transform.position = newPos;
         Debug.Log(newPos);
     }
